@@ -7,6 +7,5 @@ if (strlen($output) < 100) {
     echo "Short output, likely an error message: " . $output;
 } else {
     echo "PNG output detected, length: " . strlen($output);
-    echo "\nFirst 10 bytes: " . bin2hex(substr($output, 0, 10));
 }
 ?>

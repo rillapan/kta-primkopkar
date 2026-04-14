@@ -49,10 +49,10 @@ $qr_data_val = trim($member['nik']);
 // ==========================================
 // PENGATURAN LAYOUT & KOORDINAT BARU
 // ==========================================
-$qr_y = 500;            // Beri jarak aman dari Kop (menurunkan posisi QR)
-$target_qr_size = 400;  // Diperbesar sedikit agar proporsional dengan gambar
-$name_y = 1000;          // Posisi nama diturunkan ke area bawah yang kosong
-$font_size = 64;        // Ukuran 64 lebih aman untuk nama panjang seperti di contoh
+$qr_y = 380;            // Beri jarak aman dari Kop
+$target_qr_size = 580;  // Diperbesar sesuai proporsi reference (1748x1240)
+$name_y = 1140;          // Posisi nama diletakkan di bawah (base line)
+$font_size = 115;       // Ukuran font besar menyesuaikan kartu
 // ==========================================
 
 // Fetch and draw local FAST QR Code
@@ -98,24 +98,28 @@ if (file_exists($font_path)) {
     // Menghitung posisi X agar teks berada persis di tengah
     $bbox = imagettfbbox($font_size, 0, $font_path, $name);
     // Menggunakan abs() agar perhitungan lebih akurat di beberapa versi GD
-    $text_width = abs($bbox[2] - $bbox[0]); 
+    $text_width = abs($bbox[2] - $bbox[0]);
+    
+    // Jika nama terlalu panjang melebihi lebar kartu, perkecil font size secara dinamis
+    $dynamic_font_size = $font_size;
+    $max_width = $width - 100; // padding 50px kiri kanan
+    while ($text_width > $max_width && $dynamic_font_size > 40) {
+        $dynamic_font_size -= 5;
+        $bbox = imagettfbbox($dynamic_font_size, 0, $font_path, $name);
+        $text_width = abs($bbox[2] - $bbox[0]);
+    }
+    
     $name_x = ($width - $text_width) / 2; 
     
     // Draw Name in Dark Blue
-    imagettftext($bg, $font_size, 0, $name_x, $name_y, $dark_blue, $font_path, $name);
+    imagettftext($bg, $dynamic_font_size, 0, $name_x, $name_y, $dark_blue, $font_path, $name);
     
-    // NIK (Medium size, diletakkan persis di bawah Nama jika diperlukan)
-    // Jika di gambar contoh tidak ada NIK, Anda bisa menghapus / komen 4 baris di bawah ini
-    $font_size_nik = 20;
-    $bbox_nik = imagettfbbox($font_size_nik, 0, $font_path, $nik);
-    $nik_w = abs($bbox_nik[2] - $bbox_nik[0]);
-    imagettftext($bg, $font_size_nik, 0, ($width - $nik_w) / 2, $name_y + 40, $dark_blue, $font_path, $nik);
+    // NIK rendering dihilangkan sesuai dengan gambar referensi
     
 } else {
     // Fallback jika font tidak ditemukan
     $name_x = ($width - (strlen($name) * 9)) / 2;
     imagestring($bg, 5, $name_x, $name_y, $name, $black);
-    imagestring($bg, 4, ($width - (strlen($nik) * 7)) / 2, $name_y + 30, $nik, $black);
 }
 
 // Clean all buffers before output
